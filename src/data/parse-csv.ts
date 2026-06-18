@@ -13,6 +13,10 @@ export type AppConfig = {
   rewardDaysLeft: number;
   rewardImage: string;
   networkCount: number;
+  exploreTitle: string;
+  exploreSubtitle: string;
+  mapLatitude: number;
+  mapLongitude: number;
 };
 
 export type Listing = {
@@ -34,6 +38,8 @@ export type Listing = {
   imageSeed: string;
   isFavourite: boolean;
   extraDates: number | null;
+  latitude: number;
+  longitude: number;
 };
 
 export type Friend = {
@@ -42,10 +48,31 @@ export type Friend = {
   avatarUrl: string;
 };
 
+export type Message = {
+  id: string;
+  contactName: string;
+  contactAvatar: string;
+  lastMessage: string;
+  timestamp: string;
+  unread: boolean;
+  listingTitle: string;
+};
+
+export type ChatMessage = {
+  id: string;
+  threadId: string;
+  sender: string;
+  isMe: boolean;
+  body: string;
+  sentAt: string;
+};
+
 export type MockData = {
   app: AppConfig;
   listings: Listing[];
   friends: Friend[];
+  messages: Message[];
+  chatMessages: ChatMessage[];
 };
 
 function parseCsvLine(line: string): string[] {
@@ -89,6 +116,8 @@ export function parseMockData(csv: string): MockData {
   const appRows = lines.filter((line) => line.startsWith('app,'));
   const listingRows = lines.filter((line) => line.startsWith('listing,'));
   const friendRows = lines.filter((line) => line.startsWith('friend,'));
+  const messageRows = lines.filter((line) => line.startsWith('message,'));
+  const chatRows = lines.filter((line) => line.startsWith('chat,'));
 
   const appMap = new Map<string, string>();
   for (const row of appRows) {
@@ -113,12 +142,16 @@ export function parseMockData(csv: string): MockData {
     rewardDaysLeft: parseNumber(appMap.get('reward_days_left')),
     rewardImage: appMap.get('reward_image') ?? '',
     networkCount: parseNumber(appMap.get('network_count')),
+    exploreTitle: appMap.get('explore_title') ?? 'Explore',
+    exploreSubtitle: appMap.get('explore_subtitle') ?? '',
+    mapLatitude: parseNumber(appMap.get('map_latitude'), 51.5074),
+    mapLongitude: parseNumber(appMap.get('map_longitude'), -0.1278),
   };
 
   const listings: Listing[] = listingRows.map((row) => {
     const cols = parseCsvLine(row);
-    const bedrooms = cols[12] ? parseNumber(cols[12], NaN) : NaN;
-    const extraDates = cols[19] ? parseNumber(cols[19], NaN) : NaN;
+    const bedrooms = cols[11] ? parseNumber(cols[11], NaN) : NaN;
+    const extraDates = cols[18] ? parseNumber(cols[18], NaN) : NaN;
 
     return {
       id: cols[1] ?? '',
@@ -132,13 +165,15 @@ export function parseMockData(csv: string): MockData {
       price: parseNumber(cols[9]),
       listingType: cols[10] ?? 'Room',
       bedrooms: Number.isNaN(bedrooms) ? null : bedrooms,
-      favouritesCount: parseNumber(cols[13]),
-      vouchedBy: cols[14] ?? '',
-      vouchedAvatar: cols[15] ?? '',
-      pastBookings: parseNumber(cols[16]),
-      imageSeed: cols[17] ?? 'listing',
-      isFavourite: parseBoolean(cols[18]),
+      favouritesCount: parseNumber(cols[12]),
+      vouchedBy: cols[13] ?? '',
+      vouchedAvatar: cols[14] ?? '',
+      pastBookings: parseNumber(cols[15]),
+      imageSeed: cols[16] ?? 'listing',
+      isFavourite: parseBoolean(cols[17]),
       extraDates: Number.isNaN(extraDates) ? null : extraDates,
+      latitude: parseNumber(cols[19], 51.5074),
+      longitude: parseNumber(cols[20], -0.1278),
     };
   });
 
@@ -151,7 +186,32 @@ export function parseMockData(csv: string): MockData {
     };
   });
 
-  return { app, listings, friends };
+  const messages: Message[] = messageRows.map((row) => {
+    const cols = parseCsvLine(row);
+    return {
+      id: cols[1] ?? '',
+      contactName: cols[2] ?? '',
+      contactAvatar: cols[3] ?? '',
+      lastMessage: cols[4] ?? '',
+      timestamp: cols[5] ?? '',
+      unread: parseBoolean(cols[6]),
+      listingTitle: cols[7] ?? '',
+    };
+  });
+
+  const chatMessages: ChatMessage[] = chatRows.map((row) => {
+    const cols = parseCsvLine(row);
+    return {
+      id: cols[2] ?? '',
+      threadId: cols[1] ?? '',
+      sender: cols[3] ?? '',
+      isMe: parseBoolean(cols[4]),
+      body: cols[5] ?? '',
+      sentAt: cols[6] ?? '',
+    };
+  });
+
+  return { app, listings, friends, messages, chatMessages };
 }
 
 export function listingImageUrl(seed: string, width = 800, height = 520): string {
@@ -165,4 +225,16 @@ export function flagEmoji(countryCode: string): string {
   }
   const offset = 127397;
   return String.fromCodePoint(code.charCodeAt(0) + offset, code.charCodeAt(1) + offset);
+}
+
+export function unreadMessageCount(messages: Message[]): number {
+  return messages.filter((message) => message.unread).length;
+}
+
+export function getMessageThread(messages: Message[], threadId: string): Message | undefined {
+  return messages.find((message) => message.id === threadId);
+}
+
+export function getChatMessagesForThread(chatMessages: ChatMessage[], threadId: string): ChatMessage[] {
+  return chatMessages.filter((message) => message.threadId === threadId);
 }
