@@ -2,15 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { KikiColors } from '@/constants/kiki-theme';
-import { mockData } from '@/data';
+import { mockData, unreadMessageCount } from '@/data';
 
 export default function TabLayout() {
   const { app } = mockData;
+  const unreadCount = unreadMessageCount(mockData.messages);
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="dark" />
       <Tabs
         screenOptions={{
@@ -57,11 +59,16 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="notifications"
+          name="messages"
           options={{
-            title: 'Notifications',
+            title: 'Messages',
+            tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+            tabBarBadgeStyle: {
+              backgroundColor: KikiColors.teal,
+              fontSize: 10,
+            },
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="notifications-outline" size={size} color={color} />
+              <Ionicons name="chatbubble-outline" size={size} color={color} />
             ),
           }}
         />
@@ -85,6 +92,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </>
+    </GestureHandlerRootView>
   );
 }
