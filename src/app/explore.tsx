@@ -1,135 +1,140 @@
-import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import type { ScrollView } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { ListingCard } from '@/components/kiki/listing-card';
-import { ScreenContainer, ScreenHeader } from '@/components/kiki/screen-layout';
+import { ExploreMap, type ExploreMapHandle } from '@/components/kiki/explore-map';
+import { ExploreSearchBar } from '@/components/kiki/explore-search-bar';
+import { PlaceInfoCard } from '@/components/kiki/place-info-card';
 import { KikiColors, KikiRadius, KikiSpacing } from '@/constants/kiki-theme';
 import { mockData } from '@/data';
 
+const TAB_BAR_HEIGHT = 88;
+const DEFAULT_SHEET_INDEX = 1;
+
 export default function ExploreScreen() {
   const { app, listings } = mockData;
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const mapRef = useRef<ExploreMapHandle>(null);
+
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  const snapPoints = useMemo(() => ['13%', '45%', '92%'], []);
+
+  const drawerListings = useMemo(() => {
+    if (!selectedListingId) {
+      return listings;
+    }
+
+    const selected = listings.find((listing) => listing.id === selectedListingId);
+    if (!selected) {
+      return listings;
+    }
+
+    return [selected, ...listings.filter((listing) => listing.id !== selectedListingId)];
+  }, [listings, selectedListingId]);
+
+  const handleListingSelect = useCallback(
+    (listingId: string) => {
+      const listing = listings.find((item) => item.id === listingId);
+      if (!listing) {
+        return;
+      }
+
+      setSelectedListingId(listingId);
+      mapRef.current?.focusListing(listing);
+      bottomSheetRef.current?.snapToIndex(DEFAULT_SHEET_INDEX);
+
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+      });
+    },
+    [listings],
+  );
+
+  const handleSheetChange = useCallback((index: number) => {
+    if (index >= DEFAULT_SHEET_INDEX && selectedListingId) {
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+      });
+    }
+  }, [selectedListingId]);
 
   return (
-    <ScreenContainer>
-      <ScreenHeader title="Explore" />
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.searchRow}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={18} color={KikiColors.textMuted} />
-            <TextInput
-              placeholder="Search by dates or duration"
-              placeholderTextColor={KikiColors.textMuted}
-              style={styles.searchInput}
-              editable={false}
-            />
-          </View>
-          <View style={styles.filtersButton}>
-            <Text style={styles.filtersText}>Filters</Text>
-          </View>
-        </View>
+    <GestureHandlerRootView style={styles.root}>
+      <View style={styles.container}>
+        <ExploreMap
+          ref={mapRef}
+          app={app}
+          listings={listings}
+          selectedListingId={selectedListingId}
+          onListingPress={handleListingSelect}
+        />
+        <ExploreSearchBar app={app} />
 
-        <View style={styles.actionRow}>
-          <View style={styles.actionButton}>
-            <Ionicons name="notifications-outline" size={16} color={KikiColors.text} />
-            <Text style={styles.actionText}>Search Notifications</Text>
-          </View>
-          <View style={styles.actionButton}>
-            <Ionicons name="heart-outline" size={16} color={KikiColors.heart} />
-            <Text style={styles.actionText}>Favourites</Text>
-          </View>
-        </View>
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={DEFAULT_SHEET_INDEX}
+          snapPoints={snapPoints}
+          enablePanDownToClose={false}
+          onChange={handleSheetChange}
+          handleIndicatorStyle={styles.handle}
+          backgroundStyle={styles.sheetBackground}>
+          <BottomSheetScrollView
+            ref={scrollRef}
+            contentContainerStyle={styles.sheetContent}
+            showsVerticalScrollIndicator={false}>
+            <Text style={styles.resultsCount}>
+              {drawerListings.length} home{drawerListings.length === 1 ? '' : 's'}
+            </Text>
 
-        <View style={styles.statusPill}>
-          <Text style={styles.statusText}>🏠 +{app.kikisAddedToday} Kiki&apos;s added today!</Text>
-        </View>
-
-        <View style={styles.listings}>
-          {listings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
-        </View>
-      </ScrollView>
-    </ScreenContainer>
+            {drawerListings.map((listing) => (
+              <PlaceInfoCard
+                key={listing.id}
+                listing={listing}
+                highlighted={selectedListingId === listing.id}
+              />
+            ))}
+          </BottomSheetScrollView>
+        </BottomSheet>
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: KikiSpacing.lg,
-    paddingBottom: KikiSpacing.xxl,
-    gap: KikiSpacing.md,
-  },
-  searchRow: {
-    flexDirection: 'row',
-    gap: KikiSpacing.sm,
-    alignItems: 'center',
-  },
-  searchBar: {
+  root: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: KikiSpacing.sm,
-    borderWidth: 1,
-    borderColor: KikiColors.border,
-    borderRadius: KikiRadius.pill,
-    paddingHorizontal: KikiSpacing.md,
-    paddingVertical: 10,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: KikiColors.screenBackground,
+  },
+  handle: {
+    backgroundColor: KikiColors.textMuted,
+    width: 40,
+  },
+  sheetBackground: {
     backgroundColor: KikiColors.white,
+    borderTopLeftRadius: KikiRadius.xl,
+    borderTopRightRadius: KikiRadius.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 12,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: KikiColors.text,
-  },
-  filtersButton: {
-    borderWidth: 1,
-    borderColor: KikiColors.teal,
-    borderRadius: KikiRadius.pill,
+  sheetContent: {
     paddingHorizontal: KikiSpacing.lg,
-    paddingVertical: 10,
-  },
-  filtersText: {
-    color: KikiColors.teal,
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: KikiSpacing.sm,
-  },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: KikiColors.border,
-    borderRadius: KikiRadius.pill,
-    paddingVertical: 10,
-    backgroundColor: KikiColors.white,
-  },
-  actionText: {
-    fontSize: 13,
-    color: KikiColors.text,
-    fontWeight: '500',
-  },
-  statusPill: {
-    alignSelf: 'center',
-    backgroundColor: KikiColors.tealLight,
-    borderRadius: KikiRadius.pill,
-    paddingHorizontal: KikiSpacing.lg,
-    paddingVertical: 6,
-  },
-  statusText: {
-    fontSize: 13,
-    color: KikiColors.teal,
-    fontWeight: '600',
-  },
-  listings: {
+    paddingBottom: TAB_BAR_HEIGHT + KikiSpacing.lg,
     gap: KikiSpacing.lg,
-    marginTop: KikiSpacing.sm,
+  },
+  resultsCount: {
+    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '600',
+    color: KikiColors.text,
+    marginBottom: KikiSpacing.xs,
   },
 });
