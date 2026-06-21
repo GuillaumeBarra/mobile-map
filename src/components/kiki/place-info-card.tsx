@@ -91,9 +91,6 @@ export function PlaceInfoCard({ listing, highlighted = false }: PlaceInfoCardPro
   );
 }
 
-/** @deprecated Use PlaceInfoCard */
-export const ListingCard = PlaceInfoCard;
-
 const styles = StyleSheet.create({
   card: {
     backgroundColor: KikiColors.white,

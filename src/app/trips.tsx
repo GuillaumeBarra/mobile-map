@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenContainer, ScreenHeader } from '@/components/kiki/screen-layout';
-import { KikiColors, KikiRadius, KikiSpacing } from '@/constants/kiki-theme';
+import { KikiColors, KikiRadius, KikiShadows, KikiSpacing } from '@/constants/kiki-theme';
 
 export default function TripsScreen() {
   return (
@@ -48,11 +48,7 @@ const styles = StyleSheet.create({
     borderColor: KikiColors.border,
     padding: KikiSpacing.xl,
     gap: KikiSpacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    ...KikiShadows.card,
   },
   intro: {
     fontSize: 16,

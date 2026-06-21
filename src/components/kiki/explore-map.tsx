@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
-import { KikiColors, KikiRadius } from '@/constants/kiki-theme';
+import { KikiColors, KikiRadius, KikiShadows } from '@/constants/kiki-theme';
 import type { AppConfig, Listing } from '@/data';
 
 import { MapPriceMarker } from './map-price-marker';
@@ -169,11 +169,7 @@ const styles = StyleSheet.create({
     borderRadius: KikiRadius.pill,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
+    ...KikiShadows.label,
   },
   cityText: {
     fontSize: 14,

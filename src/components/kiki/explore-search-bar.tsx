@@ -1,20 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { KikiColors, KikiRadius, KikiSpacing } from '@/constants/kiki-theme';
+import { KikiColors, KikiRadius, KikiShadows, KikiSpacing } from '@/constants/kiki-theme';
 import type { AppConfig } from '@/data';
 
-const FILTERS = ['Any', 'Room', 'Whole Place'] as const;
+export const LISTING_TYPE_FILTERS = ['Any', 'Room', 'Whole Place'] as const;
+export type ListingTypeFilter = (typeof LISTING_TYPE_FILTERS)[number];
 
 type ExploreSearchBarProps = {
   app: AppConfig;
+  activeFilter: ListingTypeFilter;
+  onFilterChange: (filter: ListingTypeFilter) => void;
 };
 
-export function ExploreSearchBar({ app }: ExploreSearchBarProps) {
+export function ExploreSearchBar({ app, activeFilter, onFilterChange }: ExploreSearchBarProps) {
   const insets = useSafeAreaInsets();
-  const [activeFilter, setActiveFilter] = useState<(typeof FILTERS)[number]>('Any');
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + KikiSpacing.sm }]}>
@@ -34,12 +35,12 @@ export function ExploreSearchBar({ app }: ExploreSearchBarProps) {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filters}>
-        {FILTERS.map((filter) => {
+        {LISTING_TYPE_FILTERS.map((filter) => {
           const isActive = activeFilter === filter;
           return (
             <Pressable
               key={filter}
-              onPress={() => setActiveFilter(filter)}
+              onPress={() => onFilterChange(filter)}
               style={[styles.filterPill, isActive && styles.filterPillActive]}>
               <Text style={[styles.filterText, isActive && styles.filterTextActive]}>{filter}</Text>
             </Pressable>
@@ -71,11 +72,7 @@ const styles = StyleSheet.create({
     borderRadius: KikiRadius.pill,
     paddingHorizontal: KikiSpacing.lg,
     paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 6,
+    ...KikiShadows.floating,
   },
   searchTextWrap: {
     alignItems: 'center',
@@ -97,11 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: KikiColors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 6,
+    ...KikiShadows.floating,
   },
   filters: {
     gap: KikiSpacing.sm,

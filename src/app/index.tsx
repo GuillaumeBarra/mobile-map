@@ -33,7 +33,7 @@ export default function CommunityScreen() {
           </Text>
         </View>
 
-        <RewardCard app={app} userAvatar={app.userAvatar} />
+        <RewardCard app={app} />
 
         <View style={styles.journeyButton}>
           <Text style={styles.journeyText}>See reward journey</Text>

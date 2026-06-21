@@ -4,7 +4,7 @@ import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { KikiColors } from '@/constants/kiki-theme';
+import { KikiColors, KikiTabBarHeight } from '@/constants/kiki-theme';
 import { mockData, unreadMessageCount } from '@/data';
 
 export default function TabLayout() {
@@ -24,7 +24,7 @@ export default function TabLayout() {
             borderTopColor: KikiColors.border,
             borderTopWidth: 1,
             paddingTop: 4,
-            height: 88,
+            height: KikiTabBarHeight,
           },
           tabBarLabelStyle: {
             fontSize: 11,

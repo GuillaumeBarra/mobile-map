@@ -43,10 +43,9 @@ export function WaitlistCard({ count }: WaitlistCardProps) {
 
 type RewardCardProps = {
   app: AppConfig;
-  userAvatar: string;
 };
 
-export function RewardCard({ app, userAvatar }: RewardCardProps) {
+export function RewardCard({ app }: RewardCardProps) {
   const progress = app.rewardGoal > 0 ? app.rewardProgress / app.rewardGoal : 0;
 
   return (
@@ -75,7 +74,7 @@ export function RewardCard({ app, userAvatar }: RewardCardProps) {
 
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${Math.max(progress * 100, 2)}%` }]} />
-        <ProfileAvatar uri={userAvatar} size={28} style={styles.progressAvatar} />
+        <ProfileAvatar uri={app.userAvatar} size={28} style={styles.progressAvatar} />
       </View>
 
       <Text style={styles.rewardFooter}>

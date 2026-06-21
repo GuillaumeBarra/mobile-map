@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { KikiColors, KikiRadius } from '@/constants/kiki-theme';
+import { KikiColors, KikiRadius, KikiShadows } from '@/constants/kiki-theme';
 
 type MapPriceMarkerProps = {
   price: number;
@@ -23,11 +23,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     minWidth: 44,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 4,
-    elevation: 4,
+    ...KikiShadows.marker,
     borderWidth: 1,
     borderColor: KikiColors.border,
   },

@@ -7,7 +7,6 @@ export {
   getChatMessagesForThread,
   getMessageThread,
   listingImageUrl,
-  parseMockData,
   unreadMessageCount,
 } from './parse-csv';
 
